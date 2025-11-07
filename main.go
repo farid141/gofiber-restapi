@@ -7,7 +7,6 @@ import (
 	"github.com/farid141/go-rest-api/config"
 	"github.com/farid141/go-rest-api/router"
 	_ "github.com/go-sql-driver/mysql"
-	jwtware "github.com/gofiber/contrib/jwt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/log"
 	_ "github.com/golang-migrate/migrate/v4/database/mysql"
@@ -31,7 +30,7 @@ func main() {
 	fmt.Println("DB URL: " + dsn)
 
 	app := fiber.New(fiber.Config{
-		Prefork:       true,
+		// Prefork:       true,
 		CaseSensitive: true,
 		StrictRouting: true,
 		ServerHeader:  "Fiber",
@@ -41,20 +40,12 @@ func main() {
 	file, _ := os.OpenFile("application.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	log.SetOutput(file)
 
-	router.SetupPublicRoutes(app)
+	router.SetupRoutes(app)
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		log.Info("hay")
 		return c.SendString("Hello, World!")
 	})
-
-	// JWT Middleware
-	app.Use(jwtware.New(jwtware.Config{
-		SigningKey:  jwtware.SigningKey{Key: []byte("secret")},
-		TokenLookup: "cookie:token", // 👈 look in cookie named "token"
-	}))
-
-	router.SetupAuthRoutes(app)
 
 	app.Listen(":3000")
 }
